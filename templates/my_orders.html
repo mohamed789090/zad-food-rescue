@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}سجل حجوزاتي وطلباتي — زاد{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill mb-2">
+                <i class="fa-solid fa-receipt me-1"></i> دورة حياة الحجز والاستلام
+            </div>
+            <h2 class="fw-bold text-dark m-0">سجل حجوزاتي وطلباتي 📋</h2>
+            <p class="text-muted m-0">أظهر كود الحجز للكاشير أو لمندوب التوصيل، وسدد القيمة كاش (أو استلم مجاناً للجمعيات)</p>
+        </div>
+        <a href="{{ url_for('home') }}" class="btn btn-outline-success rounded-pill px-4 fw-bold">
+            <i class="fa-solid fa-plus me-1"></i> تصفح عروض إضافية
+        </a>
+    </div>
+
+    {% if orders %}
+        <div class="row g-4">
+            {% for order in orders %}
+                <div class="col-lg-6">
+                    <div class="card zad-card h-100 p-4 border border-light-subtle">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">
+                                    {{ order.meal_title }} 
+                                    <span class="badge bg-success text-white ms-1 fs-8">× {{ order.quantity }} وجبات</span>
+                                </h5>
+                                <div class="small text-muted d-flex align-items-center">
+                                    <i class="fa-solid fa-store text-success me-1"></i>
+                                    <strong>{{ order.restaurant_name }}</strong>
+                                </div>
+                            </div>
+                            <div>
+                                {% if order.status == 'completed' %}
+                                    <span class="badge bg-success py-2 px-3 rounded-pill fw-bold">
+                                        <i class="fa-solid fa-circle-check me-1"></i> تم الاستلام بنجاح
+                                    </span>
+                                {% elif order.status == 'cancelled' %}
+                                    <span class="badge bg-secondary py-2 px-3 rounded-pill fw-bold">
+                                        <i class="fa-solid fa-ban me-1"></i> تم الإلغاء
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark py-2 px-3 rounded-pill fw-bold">
+                                        <i class="fa-solid fa-clock me-1"></i> في انتظار الاستلام
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- صندوق كود الحجز البارز مع النسخ التفاعلي -->
+                        <div class="zad-code-box my-3">
+                            <div class="small text-muted mb-1 d-flex justify-content-center align-items-center gap-1">
+                                <i class="fa-solid fa-qrcode text-success"></i> كود الاستلام الرسمي (اضغط للنسخ):
+                            </div>
+                            <div class="zad-code-text">{{ order.order_code }}</div>
+                            <div class="small text-muted mt-1">
+                                <i class="fa-regular fa-copy me-1"></i> أظهر هذا الكود للكاشير أو لمندوب التوصيل لتأكيد الاستلام
+                            </div>
+                        </div>
+
+                        <!-- طريقة الاستلام والعنوان والتوقيت -->
+                        <div class="bg-light rounded-4 p-3 mb-3 small text-muted border border-light-subtle">
+                            <!-- طريقة الاستلام -->
+                            <div class="mb-2 d-flex align-items-center">
+                                <i class="fa-solid fa-truck-ramp-box text-success me-2 fs-6"></i>
+                                <span><strong>طريقة الاستلام:</strong>
+                                    {% if order.delivery_type == 'delivery' %}
+                                        <span class="badge bg-primary text-white ms-1"><i class="fa-solid fa-motorcycle me-1"></i> توصيل دليفري للمنزل (+20 ج.م)</span>
+                                    {% else %}
+                                        <span class="badge bg-success text-white ms-1"><i class="fa-solid fa-store me-1"></i> استلام ذاتي من المحل</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            {% if order.delivery_type == 'delivery' and order.delivery_address %}
+                                <div class="mb-2 d-flex align-items-center text-primary">
+                                    <i class="fa-solid fa-house-chimney me-2 fs-6"></i>
+                                    <span><strong>عنوان التوصيل:</strong> {{ order.delivery_address }}</span>
+                                </div>
+                            {% endif %}
+
+                            <div class="mb-2 d-flex align-items-center">
+                                <i class="fa-solid fa-location-dot text-danger me-2 fs-6"></i>
+                                <span><strong>موقع المطعم:</strong> {{ order.restaurant_address }}</span>
+                            </div>
+                            <div class="mb-2 d-flex align-items-center">
+                                <i class="fa-solid fa-phone text-primary me-2 fs-6"></i>
+                                <span><strong>هاتف المطعم:</strong> {{ order.restaurant_phone }}</span>
+                            </div>
+                            <div class="mb-2 d-flex align-items-center">
+                                <i class="fa-solid fa-clock text-warning me-2 fs-6"></i>
+                                <span><strong>موعد الاستلام المتوقع:</strong> {{ order.pickup_time }}</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fa-solid fa-calendar-check text-secondary me-2 fs-6"></i>
+                                <span><strong>تاريخ الحجز:</strong> {{ order.created_at }}</span>
+                            </div>
+                        </div>
+
+                        <!-- التكلفة وإجراء الإلغاء -->
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                            <div>
+                                <span class="small text-muted d-block">المبلغ المطلوب سداده كاش:</span>
+                                {% if order.is_charity %}
+                                    <span class="fs-5 fw-bold text-danger">مجاناً (تبرع للجمعيات)</span>
+                                {% else %}
+                                    <span class="fs-4 fw-bold text-success">{{ order.total_price }} ج.م</span>
+                                    <span class="small text-muted">({{ order.quantity }} × {{ order.discounted_price }} ج.م {% if order.delivery_fee > 0 %}+ 20 ج.م توصيل{% endif %})</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- إتاحة إلغاء الحجز في حال كان الطلب معلقاً (Pending) -->
+                            {% if order.status == 'pending' %}
+                                <form action="{{ url_for('cancel_order', order_id=order.id) }}" method="POST">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-2 fw-bold" 
+                                            data-confirm="هل أنت متأكد من إلغاء هذا الحجز؟ سيتم إعادة الوجبات فوراً لرصيد المطعم المتاح لعدم هدرها.">
+                                        <i class="fa-solid fa-xmark me-1"></i> إلغاء الحجز ({{ order.quantity }} وجبات)
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5 bg-white rounded-4 shadow-sm border">
+            <div class="bg-success-subtle text-success d-inline-block rounded-circle p-4 mb-3">
+                <i class="fa-solid fa-receipt display-4"></i>
+            </div>
+            <h4 class="fw-bold text-dark">ليس لديك أي حجوزات بعد</h4>
+            <p class="text-muted mx-auto" style="max-width: 480px;">
+                تصفح الآن الوجبات وفوائض الأطعمة الطازجة المتاحة في منطقتك بأسعار مخفضة وساهم في تقليل الهدر.
+            </p>
+            <a href="{{ url_for('home') }}" class="btn btn-zad-primary px-4 mt-2">تصفح الوجبات المتاحة الآن</a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

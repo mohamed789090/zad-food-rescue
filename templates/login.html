@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}تسجيل الدخول — منصة زاد{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card zad-card p-4 p-md-5 border-0">
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-success-subtle text-success p-3 rounded-circle mb-3 shadow-sm">
+                        <i class="fa-solid fa-wheat-awn fs-2"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">مرحباً بك في زَادْ 🌾</h3>
+                    <p class="text-muted small">سجل دخولك لمتابعة طلباتك ومكافحة الهدر الغذائي</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('login') }}">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">اسم المستخدم:</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-user text-success"></i></span>
+                            <input type="text" name="username" class="form-control" placeholder="مثال: bakery أو admin" required autofocus>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-muted">كلمة المرور:</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-lock text-success"></i></span>
+                            <input type="password" name="password" id="loginPassword" class="form-control border-start-0 border-end-0" placeholder="••••••••" required>
+                            <button class="btn btn-outline-secondary border-start-0 bg-light btn-toggle-password" type="button" data-target="loginPassword" title="إظهار / إخفاء كلمة المرور">
+                                <i class="fa-solid fa-eye text-muted"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-zad-primary w-100 py-3 mb-3">
+                        <i class="fa-solid fa-arrow-right-to-bracket me-2"></i> تسجيل الدخول
+                    </button>
+
+                    <div class="text-center text-muted small">
+                        ليس لديك حساب؟ <a href="{{ url_for('register') }}" class="text-success fw-bold text-decoration-none">إنشاء حساب جديد</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- بطاقة المساعدة السريعة للمناقشة والديمو -->
+            <div class="card border-0 bg-white rounded-4 p-3 mt-4 shadow-sm border border-slate-200">
+                <div class="small fw-bold text-dark mb-2 d-flex align-items-center">
+                    <i class="fa-solid fa-key text-warning me-2 fs-5"></i> حسابات تجريبية جاهزة للاختبار الفوري:
+                </div>
+                <div class="small text-muted line-height-lg">
+                    • <strong>مطعم / مخبز:</strong> <code>bakery</code> (كلمة المرور: <code>123456</code>)<br>
+                    • <strong>جمعية خيرية:</strong> <code>charity1</code> (كلمة المرور: <code>123456</code>)<br>
+                    • <strong>مشتري عادي:</strong> <code>customer1</code> (كلمة المرور: <code>123456</code>)<br>
+                    • <strong>مدير النظام (الأدمن):</strong> <code>admin</code> (كلمة المرور: <code>admin123</code>)
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

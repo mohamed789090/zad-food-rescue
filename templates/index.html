@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Glassmorphism Hero Section مع مؤشرات الأثر البيئي والمجتمعي و Aurora Background -->
+<section class="hero-glass-section text-center">
+    <!-- Aurora Animated Gradient Orbs -->
+    <div class="hero-aurora-orb orb-1"></div>
+    <div class="hero-aurora-orb orb-2"></div>
+
+    <div class="container position-relative" style="z-index: 2;">
+        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-3 shadow-sm">
+            <i class="fa-solid fa-seedling me-1"></i> المبادرة الرقمية للحد من الهدر الغذائي
+        </span>
+        <h1 class="display-5 fw-bold mb-3 text-white">طعام طازج بجودة 100%.. وأثر بيئي مستدام 🌾</h1>
+        <p class="lead mb-4 text-white-50 mx-auto" style="max-width: 780px; font-weight: 500;">
+            منصة "زَادْ" الذكية تعيد توجيه فائض الأطعمة اليومية من المطاعم والفنادق للمواطنين بأسعار رمزية وللجمعيات الخيرية مجاناً.. نوفر مالك ونحمي بيئتنا.
+        </p>
+
+        <!-- عدادات الأثر البيئي والمالي والمجتمعي (Live Impact Metrics) -->
+        <div class="hero-stats-glass mx-auto" style="max-width: 1050px;">
+            <div class="row g-2 align-items-center">
+                <div class="col-lg-3 col-6 hero-stat-box border-end border-white-10">
+                    <div class="stat-icon text-warning"><i class="fa-solid fa-bowl-food"></i></div>
+                    <div class="stat-num text-warning">{{ stats.rescued_meals }}</div>
+                    <div class="stat-label">وجبة تم إنقاذها</div>
+                </div>
+
+                <div class="col-lg-3 col-6 hero-stat-box border-end border-white-10">
+                    <div class="stat-icon text-success"><i class="fa-solid fa-coins"></i></div>
+                    <div class="stat-num">{{ stats.money_saved }} <small class="fs-6 fw-normal">ج.م</small></div>
+                    <div class="stat-label">توفير مالي للمواطنين</div>
+                </div>
+
+                <div class="col-lg-3 col-6 hero-stat-box border-end border-white-10">
+                    <div class="stat-icon text-emerald"><i class="fa-solid fa-smog text-info"></i></div>
+                    <div class="stat-num text-info">{{ stats.co2_saved }} <small class="fs-6 fw-normal">كجم</small></div>
+                    <div class="stat-label">انبعاثات $CO_2e$ تم تجنبها</div>
+                </div>
+
+                <div class="col-lg-3 col-6 hero-stat-box">
+                    <div class="stat-icon text-primary"><i class="fa-solid fa-hand-holding-droplet"></i></div>
+                    <div class="stat-num text-white">{{ stats.water_saved }} <small class="fs-6 fw-normal">لتر</small></div>
+                    <div class="stat-label">مياه مهدرة تم توفيرها</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Content Section -->
+<div class="container py-2">
+
+    <!-- شريط الفلاتر الجغرافية والتصنيفات المتقدم -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4">
+        <!-- 1. الفلترة الجغرافية حسب الأحياء والمناطق -->
+        {% if areas %}
+            <div class="d-flex align-items-center gap-2 mb-3 pb-3 border-bottom flex-wrap">
+                <span class="small fw-bold text-muted d-flex align-items-center me-2">
+                    <i class="fa-solid fa-map-pin text-danger me-1"></i> تصفح حسب الحي:
+                </span>
+                <a href="{{ url_for('home', category=selected_category, type=selected_type) }}" 
+                   class="zad-pill {% if not selected_area %}active{% endif %}">
+                   كل المناطق
+                </a>
+                {% for a in areas %}
+                    <a href="{{ url_for('home', area=a, category=selected_category, type=selected_type) }}" 
+                       class="zad-pill {% if selected_area == a %}active{% endif %}">
+                       {{ a }}
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- 2. الفلترة حسب نوع العرض والتصنيف -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div class="filter-pills-bar">
+                <a href="{{ url_for('home', area=selected_area) }}" 
+                   class="zad-pill {% if not selected_category and not selected_type %}active{% endif %}">
+                   الكل
+                </a>
+                <a href="{{ url_for('home', type='discount', area=selected_area) }}" 
+                   class="zad-pill {% if selected_type == 'discount' %}active{% endif %}">
+                   <i class="fa-solid fa-tag text-warning"></i> عروض التوفير المخفضة
+                </a>
+                {% if session.get('role') in ['charity', 'admin'] %}
+                    <a href="{{ url_for('home', type='charity', area=selected_area) }}" 
+                       class="zad-pill {% if selected_type == 'charity' %}active{% endif %}">
+                       <i class="fa-solid fa-hand-holding-heart text-danger"></i> تبرع الجمعيات المجاني
+                    </a>
+                {% endif %}
+                <a href="{{ url_for('home', category='مخبوزات', area=selected_area, type=selected_type) }}" 
+                   class="zad-pill {% if selected_category == 'مخبوزات' %}active{% endif %}">
+                   🥐 مخبوزات
+                </a>
+                <a href="{{ url_for('home', category='وجبات رئيسية', area=selected_area, type=selected_type) }}" 
+                   class="zad-pill {% if selected_category == 'وجبات رئيسية' %}active{% endif %}">
+                   🍲 وجبات مطبوخة
+                </a>
+                <a href="{{ url_for('home', category='حلويات', area=selected_area, type=selected_type) }}" 
+                   class="zad-pill {% if selected_category == 'حلويات' %}active{% endif %}">
+                   🍰 حلويات
+                </a>
+            </div>
+
+            <div class="text-muted small">
+                <i class="fa-solid fa-layer-group text-success me-1"></i> متاح حالياً: <strong>{{ meals|length }}</strong> عرض
+            </div>
+        </div>
+    </div>
+
+    <!-- شبكة كروت الوجبات المتطورة (Modern Meal Cards Grid) -->
+    {% if meals %}
+        <div class="row g-4">
+            {% for meal in meals %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card zad-card h-100">
+                        <!-- الشارة العائمة العلوية -->
+                        {% if meal.is_charity %}
+                            <span class="zad-badge-charity">
+                                <i class="fa-solid fa-heart me-1"></i> تبرع خيري مجاني
+                            </span>
+                        {% else %}
+                            <span class="zad-badge-discount">
+                                <i class="fa-solid fa-percent me-1"></i> خصم {{ ((1 - meal.discounted_price / meal.original_price) * 100)|round|int }}%
+                            </span>
+                        {% endif %}
+
+                        <div class="card-body d-flex flex-column justify-content-between p-4">
+                            <div>
+                                <!-- تصنيف الوجبة والنبض التفاعلي إن كانت الكمية منخفضة -->
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge bg-slate-100 text-dark border px-3 py-1 rounded-pill small">
+                                        {{ meal.category }}
+                                    </span>
+                                    {% if meal.quantity <= 2 %}
+                                        <span class="badge rounded-pill low-stock-pulse px-3 py-1 small">
+                                            <i class="fa-solid fa-fire me-1"></i> متبقي {{ meal.quantity }} فقط!
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                <h5 class="fw-bold text-dark mt-2 mb-2" style="line-height: 1.4;">{{ meal.title }}</h5>
+                                <p class="text-muted small mb-3" style="line-height: 1.6;">{{ meal.description or 'لا توجد ملاحظات إضافية على هذا الفائض.' }}</p>
+
+                                <!-- بيانات المنشأة والموقع وموعد الاستلام -->
+                                <div class="bg-light rounded-4 p-3 mb-3 border border-light-subtle">
+                                    <div class="small fw-bold text-dark mb-1 d-flex align-items-center">
+                                        <i class="fa-solid fa-store text-success me-2"></i> {{ meal.restaurant_name }}
+                                        <span class="badge bg-light text-muted border small ms-2 fw-normal">@{{ meal.restaurant_username }}</span>
+                                    </div>
+                                    <div class="small text-muted mb-1 d-flex align-items-center">
+                                        <i class="fa-solid fa-location-dot text-danger me-2"></i> {{ meal.restaurant_address }}
+                                    </div>
+                                    <div class="small text-muted d-flex align-items-center">
+                                        <i class="fa-solid fa-clock text-warning me-2"></i> <strong>موعد الاستلام:</strong>&nbsp;{{ meal.pickup_time }}
+                                    </div>
+                                </div>
+
+                                <!-- مؤقت العد التنازلي الحركي للفوائض (Live Surplus Expiry Countdown) -->
+                                <div class="d-flex justify-content-between align-items-center py-2 px-3 rounded-4 mb-3 bg-danger-subtle border border-danger-subtle surplus-countdown-box">
+                                    <div class="small fw-bold text-danger d-flex align-items-center">
+                                        <i class="fa-solid fa-hourglass-half me-1 animate-pulse"></i>
+                                        <span>ينتهي العرض خلال:</span>
+                                    </div>
+                                    <div class="fw-bold font-monospace text-danger meal-countdown" data-meal-id="{{ meal.id }}">
+                                        --:--:--
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <!-- السعر والكمية المتاحة -->
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        {% if meal.is_charity %}
+                                            <span class="fs-4 fw-bold text-danger">0.0 ج.م</span>
+                                            <span class="badge bg-danger-subtle text-danger ms-1">مجاناً للجمعيات</span>
+                                        {% else %}
+                                            <span class="fs-4 fw-bold text-success">{{ meal.discounted_price }} ج.م</span>
+                                            <span class="text-decoration-line-through text-muted small ms-2">{{ meal.original_price }} ج.م</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="small text-muted">
+                                        المتاح: <strong class="text-dark">{{ meal.quantity }} وجبات</strong>
+                                    </div>
+                                </div>
+
+                                <!-- أزرار الحجز مع التحقق الصارم من الصلاحيات (Customer Only Flow) -->
+                                {% if session.get('role') == 'restaurant' %}
+                                    {% if meal.restaurant_id == session.get('user_id') %}
+                                        <div class="text-center py-2 px-3 rounded-pill bg-success-subtle text-success border border-success-subtle small fw-bold">
+                                            <i class="fa-solid fa-store me-1"></i> هذه الوجبة معروضة من قبلك
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center py-2 px-3 rounded-pill bg-light text-muted border small">
+                                            <i class="fa-solid fa-ban me-1"></i> حساب المطعم مخصص للعرض فقط وليس للشراء
+                                        </div>
+                                    {% endif %}
+                                {% elif meal.is_charity %}
+                                    {% if session.get('role') == 'charity' %}
+                                        <button type="button" class="btn btn-zad-amber w-100 py-2" data-bs-toggle="modal" data-bs-target="#bookingModal{{ meal.id }}">
+                                            <i class="fa-solid fa-hand-holding-heart me-1"></i> حجز التبرع للجمعية
+                                        </button>
+                                    {% elif not session.get('user_id') %}
+                                        <a href="{{ url_for('login') }}" class="btn btn-outline-danger w-100 py-2 rounded-pill fw-bold">
+                                            <i class="fa-solid fa-lock me-1"></i> دخول كجمعية لحجز التبرع
+                                        </a>
+                                    {% else %}
+                                        <div class="text-center py-2 px-3 rounded-pill bg-danger-subtle text-danger border border-danger-subtle small fw-bold">
+                                            <i class="fa-solid fa-shield-halved me-1"></i> حصري للجمعيات الخيرية المعتمدة
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    {% if session.get('role') in ['customer', 'charity'] %}
+                                        <button type="button" class="btn btn-zad-primary w-100 py-2" data-bs-toggle="modal" data-bs-target="#bookingModal{{ meal.id }}">
+                                            <i class="fa-solid fa-bag-shopping me-1"></i> احجز وحدد الكمية وطريقة الاستلام
+                                        </button>
+                                    {% elif not session.get('user_id') %}
+                                        <a href="{{ url_for('login') }}" class="btn btn-zad-primary w-100 py-2">
+                                            <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> سجل دخول كمشتري للحجز
+                                        </a>
+                                    {% else %}
+                                        <div class="text-center py-2 px-3 rounded-pill bg-light text-muted border small">
+                                            <i class="fa-solid fa-info-circle me-1"></i> الحجز متاح لحسابات المشترين فقط
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal الحجز وتحديد الكمية وطريقة الاستلام (Pickup vs Delivery) لكل وجبة -->
+                <div class="modal fade" id="bookingModal{{ meal.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content rounded-4 border-0 shadow-lg">
+                            <div class="modal-header border-0 pb-0">
+                                <h5 class="modal-title fw-bold text-dark">
+                                    {% if meal.is_charity %}
+                                        حجز تبرع إغاثي: {{ meal.title }} 🎁
+                                    {% else %}
+                                        حجز وجبة: {{ meal.title }} 🛍️
+                                    {% endif %}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form action="{{ url_for('create_order', meal_id=meal.id) }}" method="POST" id="bookingForm{{ meal.id }}">
+                                <div class="modal-body py-3">
+                                    <!-- 1. تحديد الكمية المطلوبة -->
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold d-block mb-1">حدد الكمية المطلوبة:</label>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="input-group" style="max-width: 160px;">
+                                                <button type="button" class="btn btn-outline-secondary px-3" onclick="decrementQty({{ meal.id }})">
+                                                    <i class="fa-solid fa-minus"></i>
+                                                </button>
+                                                <input type="number" name="quantity" id="qtyInput{{ meal.id }}" 
+                                                       class="form-control text-center fw-bold fs-5" 
+                                                       value="1" min="1" max="{{ meal.quantity }}" autocomplete="off"
+                                                       oninput="recalcTotal({{ meal.id }}, {{ meal.discounted_price }}, {{ 1 if meal.is_charity else 0 }})"
+                                                       onchange="recalcTotal({{ meal.id }}, {{ meal.discounted_price }}, {{ 1 if meal.is_charity else 0 }})">
+                                                <button type="button" class="btn btn-outline-secondary px-3" onclick="incrementQty({{ meal.id }}, {{ meal.quantity }})">
+                                                    <i class="fa-solid fa-plus"></i>
+                                                </button>
+                                            </div>
+                                            <span class="small text-muted">(الحد الأقصى المتاح: <strong>{{ meal.quantity }}</strong> وجبات)</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- 2. طريقة الاستلام (استلام ذاتي vs توصيل دليفري) -->
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold d-block mb-2">طريقة الاستلام المفضلة:</label>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <input type="radio" class="btn-check" name="delivery_type" id="del_pickup_{{ meal.id }}" value="pickup" checked 
+                                                       onchange="toggleDeliveryAddress({{ meal.id }}, false, {{ meal.discounted_price }}, {{ 1 if meal.is_charity else 0 }})">
+                                                <label class="btn btn-outline-success w-100 py-3 rounded-4 text-center h-100 d-flex flex-column align-items-center justify-content-center" for="del_pickup_{{ meal.id }}">
+                                                    <i class="fa-solid fa-store fs-4 mb-1"></i>
+                                                    <span class="small fw-bold">استلام ذاتي من المحل</span>
+                                                    <span class="small text-muted">(بدون مصاريف إضافية)</span>
+                                                </label>
+                                            </div>
+
+                                            <div class="col-6">
+                                                <input type="radio" class="btn-check" name="delivery_type" id="del_home_{{ meal.id }}" value="delivery"
+                                                       onchange="toggleDeliveryAddress({{ meal.id }}, true, {{ meal.discounted_price }}, {{ 1 if meal.is_charity else 0 }})">
+                                                <label class="btn btn-outline-success w-100 py-3 rounded-4 text-center h-100 d-flex flex-column align-items-center justify-content-center" for="del_home_{{ meal.id }}">
+                                                    <i class="fa-solid fa-motorcycle fs-4 mb-1"></i>
+                                                    <span class="small fw-bold">توصيل دليفري للمنزل</span>
+                                                    <span class="small text-muted">
+                                                        {% if meal.is_charity %}
+                                                            (مندوب الجمعية)
+                                                        {% else %}
+                                                            (+20 ج.م خدمة توصيل)
+                                                        {% endif %}
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- خانة عنوان التوصيل تظهر فقط عند اختيار الدليفري -->
+                                    <div class="mb-3" id="addressBox{{ meal.id }}" style="display: none;">
+                                        <label class="form-label fw-bold small text-muted">عنوان التوصيل بالتفصيل:</label>
+                                        <input type="text" name="delivery_address" class="form-control" 
+                                               value="{{ session.get('address', '') }}" 
+                                               placeholder="مثال: شارع التحرير، عمارة 15، الدور 3، شقة 7">
+                                        <small class="text-muted"><i class="fa-solid fa-circle-info me-1"></i> سيتواصل معك مندوب المطعم على رقمك: <strong>{{ session.get('phone', 'المسجل') }}</strong></small>
+                                    </div>
+
+                                    <!-- ملخص الفاتورة التفاعلي -->
+                                    <div class="bg-light rounded-4 p-3 border">
+                                        <div class="d-flex justify-content-between small text-muted mb-1">
+                                            <span>سعر الوجبات:</span>
+                                            <span id="mealsTotalText{{ meal.id }}">{{ meal.discounted_price }} ج.م</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between small text-muted mb-1" id="feeRow{{ meal.id }}" style="display: none;">
+                                            <span>رسوم التوصيل:</span>
+                                            <span>20.0 ج.م</span>
+                                        </div>
+                                        <hr class="my-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="fw-bold text-dark">المبلغ الإجمالي كاش:</span>
+                                            <span class="fs-4 fw-bold text-success" id="finalTotalText{{ meal.id }}">
+                                                {% if meal.is_charity %}
+                                                    مجاناً (0 ج.م)
+                                                {% else %}
+                                                    {{ meal.discounted_price }} ج.م
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 pt-0">
+                                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">إلغاء</button>
+                                    <button type="submit" class="btn btn-zad-primary px-4 fw-bold">
+                                        <i class="fa-solid fa-check-circle me-1"></i> تأكيد الحجز واستلام الكود
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5 bg-white rounded-4 shadow-sm my-4 border">
+            <div class="bg-success-subtle text-success d-inline-block rounded-circle p-4 mb-3">
+                <i class="fa-solid fa-bowl-rice display-4"></i>
+            </div>
+            <h4 class="fw-bold text-dark">لا توجد فوائض معروضة في هذا النطاق حالياً</h4>
+            <p class="text-muted mx-auto" style="max-width: 500px;">
+                المطاعم ترفع عروض الإغلاق المسائية دورياً. يمكنك تغيير خيارات الفلترة أو إعادة تصفح كل المناطق.
+            </p>
+            <a href="{{ url_for('home') }}" class="btn btn-zad-primary px-4 mt-2">عرض كل الوجبات المتاحة</a>
+        </div>
+    {% endif %}
+
+</div>
+
+<!-- JavaScript للتحكم في كميات الحجز وحساب الفاتورة لحظياً -->
+<script>
+function incrementQty(mealId, maxQty) {
+    let input = document.getElementById("qtyInput" + mealId);
+    let current = parseInt(input.value) || 1;
+    if (current < maxQty) {
+        input.value = current + 1;
+        input.setAttribute('value', current + 1);
+        input.dispatchEvent(new Event('input'));
+        input.dispatchEvent(new Event('change'));
+    }
+}
+
+function decrementQty(mealId) {
+    let input = document.getElementById("qtyInput" + mealId);
+    let current = parseInt(input.value) || 1;
+    if (current > 1) {
+        input.value = current - 1;
+        input.setAttribute('value', current - 1);
+        input.dispatchEvent(new Event('input'));
+        input.dispatchEvent(new Event('change'));
+    }
+}
+
+function recalcTotal(mealId, unitPrice, isCharity) {
+    let input = document.getElementById("qtyInput" + mealId);
+    let qty = parseInt(input.value) || 1;
+    let isDelivery = document.getElementById("del_home_" + mealId).checked;
+    let fee = (isDelivery && !isCharity) ? 20.0 : 0.0;
+    let mealsTotal = unitPrice * qty;
+    let finalTotal = mealsTotal + fee;
+
+    document.getElementById("mealsTotalText" + mealId).innerText = isCharity ? "0 ج.م" : (mealsTotal.toFixed(1) + " ج.م");
+    document.getElementById("finalTotalText" + mealId).innerText = isCharity ? "مجاناً (0 ج.م)" : (finalTotal.toFixed(1) + " ج.م");
+}
+
+function toggleDeliveryAddress(mealId, isDelivery, unitPrice, isCharity) {
+    let addressBox = document.getElementById("addressBox" + mealId);
+    let feeRow = document.getElementById("feeRow" + mealId);
+
+    if (isDelivery) {
+        addressBox.style.display = "block";
+        if (!isCharity) feeRow.style.display = "flex";
+    } else {
+        addressBox.style.display = "none";
+        feeRow.style.display = "none";
+    }
+    recalcTotal(mealId, unitPrice, isCharity);
+}
+</script>
+{% endblock %}

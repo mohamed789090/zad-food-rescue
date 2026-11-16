@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة إدارة المنصة والتحليلات — زاد{% endblock %}
+
+{% block head %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- ترويسة لوحة الإدارة -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <div class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-3 py-1 rounded-pill mb-2">
+                <i class="fa-solid fa-chart-line me-1"></i> لوحة التحكم المركزية (Admin Portal)
+            </div>
+            <h2 class="fw-bold text-dark m-0">مؤشرات الأداء والأثر البيئي الشامل 📊</h2>
+            <p class="text-muted m-0">متابعة كافة المنشآت، الحجوزات، والأثر المحقق للتنمية المستدامة (SDGs)</p>
+        </div>
+        <div>
+            <a href="{{ url_for('export_csv') }}" class="btn btn-zad-primary shadow-sm">
+                <i class="fa-solid fa-file-excel me-2"></i> تصدير التقرير الشامل (Excel / CSV)
+            </a>
+        </div>
+    </div>
+
+    <!-- كروت المؤشرات العلوية (Operational & Environmental Impact Metrics) -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-2 col-md-4 col-6">
+            <div class="metric-card">
+                <div class="text-muted small fw-bold mb-1"><i class="fa-solid fa-store text-success me-1"></i> المطاعم</div>
+                <div class="fs-3 fw-bold text-dark">{{ stats.restaurants }}</div>
+                <small class="text-success small"><i class="fa-solid fa-check me-1"></i> منشآت معتمدة</small>
+            </div>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-6">
+            <div class="metric-card">
+                <div class="text-muted small fw-bold mb-1"><i class="fa-solid fa-hand-holding-heart text-danger me-1"></i> الجمعيات</div>
+                <div class="fs-3 fw-bold text-dark">{{ stats.charities }}</div>
+                <small class="text-danger small"><i class="fa-solid fa-heart me-1"></i> جهات إغاثية</small>
+            </div>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-6">
+            <div class="metric-card">
+                <div class="text-muted small fw-bold mb-1"><i class="fa-solid fa-users text-primary me-1"></i> المستهلكين</div>
+                <div class="fs-3 fw-bold text-dark">{{ stats.customers }}</div>
+                <small class="text-primary small"><i class="fa-solid fa-user-check me-1"></i> حساب نشط</small>
+            </div>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-6">
+            <div class="metric-card">
+                <div class="text-muted small fw-bold mb-1"><i class="fa-solid fa-coins text-warning me-1"></i> التوفير المالي</div>
+                <div class="fs-3 fw-bold text-dark">{{ stats.total_money_saved }}</div>
+                <small class="text-muted small">جنيه للمواطنين</small>
+            </div>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-6">
+            <div class="metric-card border-success-subtle bg-success-subtle">
+                <div class="text-success small fw-bold mb-1"><i class="fa-solid fa-cloud-arrow-down me-1"></i> خفض $CO_2e$</div>
+                <div class="fs-3 fw-bold text-success">{{ stats.co2_saved }}</div>
+                <small class="text-success small">كجم انبعاثات</small>
+            </div>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-6">
+            <div class="metric-card border-info-subtle bg-info-subtle">
+                <div class="text-primary small fw-bold mb-1"><i class="fa-solid fa-droplet me-1"></i> توفير المياه</div>
+                <div class="fs-3 fw-bold text-primary">{{ stats.water_saved }}</div>
+                <small class="text-primary small">لتر مياه مهدرة</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- قسم الرسوم البيانية المتطورة ونظم دعم القرار (MIS Analytics & Charts) -->
+    <div class="row g-4 mb-4">
+        <!-- 1. الرسم البياني الخطي: نمو الحجوزات والعمليات عبر الأيام -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold m-0 text-dark"><i class="fa-solid fa-chart-line text-success me-2"></i>معدل نمو الحجوزات بمرور الوقت</h5>
+                    <span class="badge bg-light text-muted border px-2 py-1 small">النشاط اليومي</span>
+                </div>
+                <div style="height: 290px; position: relative;">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. الرسم البياني الدائري: توزيع الوجبات حسب التصنيف -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold m-0 text-dark"><i class="fa-solid fa-chart-pie text-warning me-2"></i>توزيع الفوائض حسب الصنف</h5>
+                    <span class="badge bg-light text-muted border px-2 py-1 small">التصنيفات الغذائية</span>
+                </div>
+                <div style="height: 290px; position: relative;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- قسم مؤشرات كفاءة سلاسل الإمداد ونظم دعم القرار (MIS Decision Support System - DSS) -->
+    <div class="row g-4 mb-4">
+        <!-- 3. رسم بياني شريطي: كفاءة إنجاز الطلبات وحالات التسليم -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold m-0 text-dark"><i class="fa-solid fa-chart-column text-primary me-2"></i>كفاءة سلاسل الإمداد ومعدل الإنجاز</h5>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small fw-bold">نسبة النجاح: {{ stats.fulfillment_rate }}%</span>
+                </div>
+                <div style="height: 280px; position: relative;">
+                    <canvas id="fulfillmentChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. لوحة نظم دعم القرار الإداري والتوصيات الاستراتيجية (Executive DSS Recommendations) -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100 border-start border-4 border-success">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold m-0 text-dark"><i class="fa-solid fa-brain text-success me-2"></i>وحدة نظم دعم القرار الإداري (MIS DSS)</h5>
+                    <span class="badge bg-success-subtle text-success border border-success px-2 py-1 small">توصيات ذكية</span>
+                </div>
+                <p class="text-muted small mb-3">
+                    تحليل إداري لحظي لبيانات المنصة لمساعدة الإدارة وصناع القرار في سلاسل الإمداد الغذائي:
+                </p>
+
+                <div class="bg-light rounded-4 p-3 mb-2 border">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="small fw-bold text-dark"><i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> الصنف الأكثر عرضة للهدر:</span>
+                        <span class="badge bg-danger-subtle text-danger fw-bold fs-7">{{ stats.highest_waste_category }}</span>
+                    </div>
+                    <div class="small text-muted">يمثل هذا الصنف الحصة الأكبر من الفوائض؛ يُنصح بتحفيز المخابز والمطابخ بتقديم خصومات مبكرة.</div>
+                </div>
+
+                <div class="bg-light rounded-4 p-3 mb-2 border">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="small fw-bold text-dark"><i class="fa-solid fa-circle-check text-success me-1"></i> كفاءة التسليم الميداني:</span>
+                        <span class="badge bg-success text-white fw-bold fs-7">{{ stats.fulfillment_rate }}% تسليم مكتمل</span>
+                    </div>
+                    <div class="small text-muted">مؤشر عالٍ لالتزام المستهلكين والمطاعم بالاستلام المباشر وتقليل معدل الإلغاء.</div>
+                </div>
+
+                <div class="bg-light rounded-4 p-3 border">
+                    <div class="small fw-bold text-dark mb-1"><i class="fa-solid fa-lightbulb text-warning me-1"></i> التوصية الاستراتيجية للتوسع:</div>
+                    <div class="small text-muted">توسيع شبكة الجمعيات الخيرية الشريكة في نطاق أحياء وسط القاهرة والجيزة لاستيعاب ذروة فوائض الإغلاق المسائية.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول إدارة المستخدمين والصلاحيات مع الحماية الأمنية -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+                <h5 class="fw-bold m-0 text-dark"><i class="fa-solid fa-users-gear text-secondary me-2"></i>إدارة الحسابات والصلاحيات (RBAC)</h5>
+                <small class="text-muted">التحكم في المطاعم، الجمعيات الخيرية، والمستهلكين مع حماية حساب الأدمن الأساسي</small>
+            </div>
+            <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill">إجمالي المستخدمين: {{ users|length }}</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>الاسم بالكامل / المنشأة</th>
+                        <th>اسم المستخدم</th>
+                        <th>نوع الحساب (Role)</th>
+                        <th>رقم الهاتف</th>
+                        <th>الموقع / الحي</th>
+                        <th>تاريخ التسجيل</th>
+                        <th class="text-center">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                        <tr>
+                            <td>{{ u.id }}</td>
+                            <td><strong>{{ u.full_name }}</strong></td>
+                            <td><code>{{ u.username }}</code></td>
+                            <td>
+                                {% if u.role == 'admin' %}
+                                    <span class="badge bg-dark px-2 py-1">مدير النظام (Admin)</span>
+                                {% elif u.role == 'restaurant' %}
+                                    <span class="badge bg-success-subtle text-success border border-success px-2 py-1">مطعم / مخبز</span>
+                                {% elif u.role == 'charity' %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">جمعية خيرية</span>
+                                {% else %}
+                                    <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-1">مشتري / مواطن</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ u.phone or '-' }}</td>
+                            <td><span class="badge bg-light text-muted border">{{ u.address or '-' }}</span></td>
+                            <td><small class="text-muted">{{ u.created_at }}</small></td>
+                            <td class="text-center">
+                                {% if u.id != session.get('user_id') %}
+                                    <form action="{{ url_for('delete_user', user_id=u.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3" 
+                                                data-confirm="تنبيه: هل أنت متأكد من حذف هذا المستخدم وكافة ارتباطاته من المنصة؟">
+                                            <i class="fa-solid fa-trash me-1"></i> حذف
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <span class="badge bg-success text-white small px-2 py-1"><i class="fa-solid fa-shield me-1"></i> حسابك الحالي</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- جدول سجل أحدث العمليات الشاملة -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold m-0 text-dark"><i class="fa-solid fa-receipt text-primary me-2"></i>سجل العمليات الأحدث في المنصة</h5>
+            <span class="badge bg-light text-muted border px-2 py-1 small">آخر 25 عملية</span>
+        </div>
+        {% if orders %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>كود الحجز</th>
+                            <th>الوجبة</th>
+                            <th>المطعم</th>
+                            <th>العميل المستلم</th>
+                            <th>السعر</th>
+                            <th>الحالة</th>
+                            <th>تاريخ الحجز</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in orders %}
+                            <tr>
+                                <td><code class="fw-bold fs-6">{{ o.order_code }}</code></td>
+                                <td><strong>{{ o.meal_title }}</strong></td>
+                                <td>{{ o.restaurant_name }}</td>
+                                <td>{{ o.user_name }}</td>
+                                <td>
+                                    {% if o.total_price == 0 %}
+                                        <span class="badge bg-danger-subtle text-danger">تبرع مجاني</span>
+                                    {% else %}
+                                        <strong>{{ o.total_price }} ج.م</strong>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if o.status == 'completed' %}
+                                        <span class="badge bg-success">تم التسليم ✅</span>
+                                    {% elif o.status == 'cancelled' %}
+                                        <span class="badge bg-secondary">ملغي ❌</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">معلق ⏳</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="text-muted">{{ o.created_at }}</span></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted text-center py-4 m-0">لا توجد عمليات مسجلة بعد في قاعدة البيانات.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- تهيئة الرسوم البيانية المتطورة Chart.js -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // 1. Line Chart: خط نمو العمليات الزمني
+    const lineCtx = document.getElementById('timelineChart').getContext('2d');
+    const timeLabels = {{ timeline_labels|tojson }};
+    const timeCounts = {{ timeline_counts|tojson }};
+
+    new Chart(lineCtx, {
+        type: 'line',
+        data: {
+            labels: timeLabels,
+            datasets: [{
+                label: 'عدد الحجوزات والعمليات',
+                data: timeCounts,
+                borderColor: '#059669',
+                backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                fill: true,
+                tension: 0.35,
+                borderWidth: 3,
+                pointBackgroundColor: '#047857',
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+
+    // 2. Doughnut Chart: توزيع الوجبات حسب الصنف
+    const doughCtx = document.getElementById('categoryChart').getContext('2d');
+    const catLabels = {{ cat_dist.keys()|list|tojson }};
+    const catData = {{ cat_dist.values()|list|tojson }};
+
+    new Chart(doughCtx, {
+        type: 'doughnut',
+        data: {
+            labels: catLabels,
+            datasets: [{
+                data: catData,
+                backgroundColor: [
+                    '#059669', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6'
+                ],
+                borderWidth: 3,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { family: 'Cairo', weight: 'bold' },
+                        padding: 15
+                    }
+                }
+            },
+            cutout: '65%'
+        }
+    });
+
+    // 3. Bar Chart: كفاءة سلاسل الإمداد ومعدل الإنجاز
+    const fulfillCtx = document.getElementById('fulfillmentChart').getContext('2d');
+    const orderStatus = {{ order_status|tojson }};
+
+    new Chart(fulfillCtx, {
+        type: 'bar',
+        data: {
+            labels: ['مكتمل ومستلم ✅', 'في انتظار الاستلام ⏳', 'ملغي ❌'],
+            datasets: [{
+                label: 'عدد الطلبات',
+                data: [orderStatus.completed || 0, orderStatus.pending || 0, orderStatus.cancelled || 0],
+                backgroundColor: ['#059669', '#f59e0b', '#ef4444'],
+                borderRadius: 8,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

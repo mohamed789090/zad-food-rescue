@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة إدارة المطعم — زاد{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- ترويسة لوحة المطعم -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <div class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill mb-2">
+                <i class="fa-solid fa-store me-1"></i> لوحة الإدارة التشغيلية للمنشأة
+            </div>
+            <h2 class="fw-bold text-dark m-0">{{ session.get('full_name') }}</h2>
+            <p class="text-muted m-0">إدارة قوائم الفوائض، تسليم الوجبات بالكود، ومتابعة الأثر المجتمعي</p>
+        </div>
+        <button class="btn btn-zad-primary" data-bs-toggle="modal" data-bs-target="#addMealModal">
+            <i class="fa-solid fa-plus-circle me-1"></i> إضافة فائض طعام جديد
+        </button>
+    </div>
+
+    <!-- بانر التنبيه بالطلبات الجديدة الواردة فورياً للمطعم -->
+    {% if pending_orders and pending_orders|length > 0 %}
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white border-end border-5 border-danger">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-danger p-2 rounded-circle fs-6">
+                        <i class="fa-solid fa-bell"></i>
+                    </span>
+                    <h5 class="fw-bold m-0 text-danger">🔔 وصلك {{ pending_orders|length }} طلب جديد في انتظار التحقق والتسليم!</h5>
+                </div>
+                <span class="small text-muted">اضغط على زر "تحقق وسلّم" لتعبئة الكود تلقائياً</span>
+            </div>
+
+            <div class="row g-3">
+                {% for po in pending_orders %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="p-3 rounded-4 bg-light border border-danger-subtle shadow-sm h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <strong class="text-dark">{{ po.meal_title }}</strong>
+                                    <span class="badge bg-secondary text-white">× {{ po.quantity }}</span>
+                                </div>
+                                <div class="small text-muted mb-2">
+                                    <div><i class="fa-solid fa-user text-muted me-1"></i> {{ po.customer_name }} ({{ po.customer_phone or 'بدون هاتف' }})</div>
+                                    {% if po.delivery_type == 'delivery' %}
+                                        <div class="text-primary fw-bold mt-1"><i class="fa-solid fa-motorcycle me-1"></i> دليفري: {{ po.delivery_address }}</div>
+                                    {% else %}
+                                        <div class="text-success fw-bold mt-1"><i class="fa-solid fa-store me-1"></i> استلام ذاتي من المحل</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-2">
+                                <code class="fw-bold fs-6 text-primary">{{ po.order_code }}</code>
+                                <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold" onclick="autoFillCode('{{ po.order_code }}')">
+                                    <i class="fa-solid fa-check me-1"></i> تحقق وسلّم
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- كروت ملخص الأداء السريع -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-sm-6">
+            <div class="metric-card d-flex align-items-center">
+                <div class="metric-icon-wrap bg-success-subtle text-success me-3">
+                    <i class="fa-solid fa-utensils"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">إجمالي العروض المسجلة</div>
+                    <div class="fs-4 fw-bold text-dark">{{ meals|length }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-sm-6">
+            <div class="metric-card d-flex align-items-center">
+                <div class="metric-icon-wrap bg-warning-subtle text-warning me-3">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">المخزون الحالي المتاح</div>
+                    <div class="fs-4 fw-bold text-dark">{{ stats.current_stock or 0 }} وجبة</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-sm-6">
+            <div class="metric-card d-flex align-items-center">
+                <div class="metric-icon-wrap bg-primary-subtle text-primary me-3">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">وجبات تم تسليمها بنجاح</div>
+                    <div class="fs-4 fw-bold text-dark">{{ completed_orders }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-sm-6">
+            <div class="metric-card d-flex align-items-center">
+                <div class="metric-icon-wrap bg-danger-subtle text-danger me-3">
+                    <i class="fa-solid fa-hand-holding-heart"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">عروض تبرع للجمعيات</div>
+                    <div class="fs-4 fw-bold text-dark">{{ stats.charity_count or 0 }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- الصندوق المركزي للتحقق السريع من كود الحجز عند حضور الزبون -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100 border-top border-4 border-success">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="metric-icon-wrap bg-success-subtle text-success me-3">
+                        <i class="fa-solid fa-qrcode"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold m-0 text-dark">التحقق السريع من كود الحجز</h5>
+                        <small class="text-muted">أدخل كود العميل لتسليمه الوجبة وتحديث السجل</small>
+                    </div>
+                </div>
+
+                <form action="{{ url_for('verify_order') }}" method="POST" class="mt-2">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">كود الحجز المكون من 8 خانات:</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light border-2 border-end-0"><i class="fa-solid fa-barcode text-success"></i></span>
+                            <input type="text" name="order_code" class="form-control border-2 text-center fw-bold fs-4 text-uppercase tracking-wider" 
+                                   placeholder="ZAD-XXXXX" required autocomplete="off">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-zad-primary w-100 py-3 fs-6">
+                        <i class="fa-solid fa-check-double me-2"></i> تأكيد استلام الوجبة والدفع الكاش
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- جدول أحدث الحجوزات الواردة للمطعم -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold m-0 text-dark"><i class="fa-solid fa-clock-rotate-left text-success me-2"></i>أحدث الحجوزات والطلبات</h5>
+                    <span class="badge bg-light text-muted border px-2 py-1 small">آخر 30 طلب</span>
+                </div>
+                {% if orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle small m-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>كود الحجز</th>
+                                    <th>الوجبة والكمية</th>
+                                    <th>العميل والتوصيل</th>
+                                    <th>المبلغ الكلي</th>
+                                    <th>الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                    <tr>
+                                        <td><code class="fw-bold fs-6 text-primary">{{ order.order_code }}</code></td>
+                                        <td>
+                                            <strong>{{ order.meal_title }}</strong>
+                                            <span class="badge bg-secondary text-white ms-1">× {{ order.quantity }}</span>
+                                        </td>
+                                        <td>
+                                            <strong>{{ order.customer_name }}</strong>
+                                            <div class="text-muted small"><i class="fa-solid fa-phone me-1"></i>{{ order.customer_phone or 'بدون هاتف' }}</div>
+                                            {% if order.delivery_type == 'delivery' %}
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle mt-1">
+                                                    <i class="fa-solid fa-motorcycle me-1"></i> دليفري: {{ order.delivery_address or 'عنوان مسجل' }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-light text-muted border mt-1">
+                                                    <i class="fa-solid fa-store me-1"></i> استلام من المحل
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if order.total_price == 0 %}
+                                                <span class="badge bg-danger-subtle text-danger">مجاناً</span>
+                                            {% else %}
+                                                <strong class="text-success">{{ order.total_price }} ج.م</strong>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if order.status == 'completed' %}
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">مكتمل ومستلم ✅</span>
+                                            {% elif order.status == 'cancelled' %}
+                                                <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">ملغي ❌</span>
+                                            {% else %}
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1">في انتظار الاستلام ⏳</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-receipt fs-1 mb-2 opacity-50"></i>
+                        <p class="m-0">لا توجد حجوزات مسجلة بعد. ستظهر هنا فور حجز الزبائن لوجباتك.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول إدارة عروض الوجبات الحالي مع إمكانية التعديل والحذف -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold m-0 text-dark"><i class="fa-solid fa-list-check text-success me-2"></i>عروض فوائض الطعام الحالية والسابقة</h5>
+            <span class="small text-muted">يمكنك تعديل الأسعار، الكميات، أو حذف العرض</span>
+        </div>
+        {% if meals %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>الوجبة</th>
+                            <th>التصنيف</th>
+                            <th>النوع</th>
+                            <th>الأسعار</th>
+                            <th>المخزون</th>
+                            <th>موعد الاستلام</th>
+                            <th class="text-center">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in meals %}
+                            <tr>
+                                <td>
+                                    <strong>{{ m.title }}</strong>
+                                    {% if m.description %}<br><small class="text-muted">{{ m.description }}</small>{% endif %}
+                                </td>
+                                <td><span class="badge bg-light text-dark border">{{ m.category }}</span></td>
+                                <td>
+                                    {% if m.is_charity %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">تبرع جمعيات</span>
+                                    {% else %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">بيع مخفض</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if m.is_charity %}
+                                        <span class="text-danger fw-bold">مجاني</span>
+                                    {% else %}
+                                        <strong class="text-success">{{ m.discounted_price }} ج.م</strong>
+                                        <small class="text-decoration-line-through text-muted ms-1">{{ m.original_price }} ج.م</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if m.quantity > 0 %}
+                                        <span class="badge bg-primary-subtle text-primary border px-3 py-1">{{ m.quantity }} وجبة</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">نفد المخزون</span>
+                                    {% endif %}
+                                </td>
+                                <td><small class="text-muted"><i class="fa-solid fa-clock me-1"></i>{{ m.pickup_time }}</small></td>
+                                <td>
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <!-- زر التعديل -->
+                                        <button class="btn btn-outline-primary btn-sm rounded-pill px-3" 
+                                                data-bs-toggle="modal" data-bs-target="#editMealModal{{ m.id }}">
+                                            <i class="fa-solid fa-pen-to-square me-1"></i> تعديل
+                                        </button>
+                                        <!-- زر الحذف -->
+                                        <form action="{{ url_for('delete_meal', meal_id=m.id) }}" method="POST">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3" data-confirm="هل أنت متأكد من رغبتك في حذف هذه الوجبة نهائياً؟">
+                                                <i class="fa-solid fa-trash me-1"></i> حذف
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Modal تعديل الوجبة (Edit Modal) لكل وجبة -->
+                            <div class="modal fade" id="editMealModal{{ m.id }}" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content rounded-4 border-0 shadow">
+                                        <div class="modal-header border-0 pb-0">
+                                            <h5 class="modal-title fw-bold">تعديل بيانات الوجبة: {{ m.title }} ✏️</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form action="{{ url_for('edit_meal', meal_id=m.id) }}" method="POST" class="zad-meal-form">
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold">اسم الوجبة:</label>
+                                                    <input type="text" name="title" class="form-control" value="{{ m.title }}" required>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold">التصنيف:</label>
+                                                        <select name="category" class="form-select">
+                                                            <option value="مخبوزات" {% if m.category == 'مخبوزات' %}selected{% endif %}>🥐 مخبوزات ومعجنات</option>
+                                                            <option value="وجبات رئيسية" {% if m.category == 'وجبات رئيسية' %}selected{% endif %}>🍲 وجبات مطبوخة ورئيسية</option>
+                                                            <option value="حلويات" {% if m.category == 'حلويات' %}selected{% endif %}>🍰 حلويات وشرقيات</option>
+                                                            <option value="خضار وفواكه" {% if m.category == 'خضار وفواكه' %}selected{% endif %}>🥦 خضروات وفواكه</option>
+                                                            <option value="أخرى" {% if m.category == 'أخرى' %}selected{% endif %}>📦 أخرى</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold">نوع العرض:</label>
+                                                        <select name="is_charity" class="form-select">
+                                                            <option value="0" {% if not m.is_charity %}selected{% endif %}>💵 بيع مخفض للمستهلكين</option>
+                                                            <option value="1" {% if m.is_charity %}selected{% endif %}>🎁 تبرع مجاني للجمعيات الخيرية</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold">السعر الأصلي (ج.م):</label>
+                                                        <input type="number" step="0.5" name="original_price" class="form-control" value="{{ m.original_price }}" required>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold">السعر المخفض (ج.م):</label>
+                                                        <input type="number" step="0.5" name="discounted_price" class="form-control" value="{{ m.discounted_price }}">
+                                                        <div class="live-discount-badge small fw-bold mt-1 text-success" style="display: none;"></div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold">الكمية المتاحة:</label>
+                                                        <input type="number" name="quantity" class="form-control" value="{{ m.quantity }}" min="0" required>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold">موعد الاستلام:</label>
+                                                        <input type="text" name="pickup_time" class="form-control" value="{{ m.pickup_time }}" required>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold">تفاصيل إضافية:</label>
+                                                    <textarea name="description" class="form-control" rows="2">{{ m.description or '' }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-0 pt-0">
+                                                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">إلغاء</button>
+                                                <button type="submit" class="btn btn-zad-primary px-4">حفظ التعديلات</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="fa-solid fa-plate-wheat fs-1 mb-2"></i>
+                <p>لم تقم بإضافة أي عروض بعد. اضغط على الزر أعلاه لإضافة أول عرض لإنقاذ الفائض!</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Modal إضافة وجبة جديدة (Add Meal Modal) -->
+<div class="modal fade" id="addMealModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">إضافة وجبة أو صندوق فائض جديد 🍱</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('add_meal') }}" method="POST" class="zad-meal-form">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">اسم الوجبة / صندوق الفائض:</label>
+                        <input type="text" name="title" class="form-control" placeholder="مثال: بوكس مخبوزات مشكل أو صينية أرز ودجاج مشوي" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">التصنيف:</label>
+                            <select name="category" class="form-select">
+                                <option value="مخبوزات">🥐 مخبوزات ومعجنات</option>
+                                <option value="وجبات رئيسية" selected>🍲 وجبات مطبوخة ورئيسية</option>
+                                <option value="حلويات">🍰 حلويات ومخبوزات شرقية/غربية</option>
+                                <option value="خضار وفواكه">🥦 خضروات وفواكه طازجة</option>
+                                <option value="أخرى">📦 أخرى</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">نوع العرض:</label>
+                            <select name="is_charity" id="addIsCharitySelect" class="form-select" onchange="toggleAddPriceFields()">
+                                <option value="0" selected>💵 بيع مخفض للمستهلكين</option>
+                                <option value="1">🎁 تبرع مجاني للجمعيات الخيرية</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row" id="addPriceFields">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">السعر الأصلي المعتاد (ج.م):</label>
+                            <input type="number" step="0.5" name="original_price" class="form-control" placeholder="مثال: 120" required>
+                        </div>
+                        <div class="col-md-6 mb-3" id="addDiscountCol">
+                            <label class="form-label fw-bold">السعر المخفض بعد الخصم (ج.م):</label>
+                            <input type="number" step="0.5" name="discounted_price" id="addDiscountInput" class="form-control" placeholder="مثال: 45">
+                            <div class="live-discount-badge small fw-bold mt-1 text-success" style="display: none;"></div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">الكمية المتاحة:</label>
+                            <input type="number" name="quantity" class="form-control" value="5" min="1" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">موعد الاستلام من المنشأة:</label>
+                            <input type="text" name="pickup_time" class="form-control" placeholder="مثال: اليوم من 9:00م إلى 11:30م" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">تفاصيل ومحتويات الوجبة:</label>
+                        <textarea name="description" class="form-control" rows="2" placeholder="ملاحظات عن التغليف أو المكونات أو طريقة الحفظ"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-zad-primary px-4">حفظ ونشر العرض فوراً</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleAddPriceFields() {
+    let select = document.getElementById("addIsCharitySelect");
+    let discountCol = document.getElementById("addDiscountCol");
+    let discountInput = document.getElementById("addDiscountInput");
+    if (select.value === "1") {
+        discountCol.style.display = "none";
+        discountInput.value = "0";
+    } else {
+        discountCol.style.display = "block";
+    }
+}
+
+function autoFillCode(code) {
+    let input = document.querySelector('input[name="order_code"]');
+    if (input) {
+        input.value = code;
+        input.focus();
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+</script>
+{% endblock %}

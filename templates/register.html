@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}إنشاء حساب جديد — منصة زاد{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card zad-card p-4 p-md-5 border-0">
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-warning-subtle text-warning p-3 rounded-circle mb-3 shadow-sm">
+                        <i class="fa-solid fa-user-plus fs-2 text-dark"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">انضم إلى مجتمع زَادْ 🌾</h3>
+                    <p class="text-muted small">اختر نوع حسابك للمساهمة في تحقيق الاستدامة الغذائية</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('register') }}">
+                    <!-- اختيار نوع الحساب -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-muted d-block mb-2">اختر صفتك في المنصة:</label>
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <input type="radio" class="btn-check" name="role" id="role_customer" value="customer" checked>
+                                <label class="btn btn-outline-success w-100 py-3 rounded-4 text-center h-100 d-flex flex-column align-items-center justify-content-center" for="role_customer">
+                                    <i class="fa-solid fa-user mb-1 fs-5"></i>
+                                    <span class="small fw-bold">مشتري / مواطن</span>
+                                </label>
+                            </div>
+                            <div class="col-4">
+                                <input type="radio" class="btn-check" name="role" id="role_restaurant" value="restaurant">
+                                <label class="btn btn-outline-success w-100 py-3 rounded-4 text-center h-100 d-flex flex-column align-items-center justify-content-center" for="role_restaurant">
+                                    <i class="fa-solid fa-store mb-1 fs-5"></i>
+                                    <span class="small fw-bold">مطعم / مخبز</span>
+                                </label>
+                            </div>
+                            <div class="col-4">
+                                <input type="radio" class="btn-check" name="role" id="role_charity" value="charity">
+                                <label class="btn btn-outline-success w-100 py-3 rounded-4 text-center h-100 d-flex flex-column align-items-center justify-content-center" for="role_charity">
+                                    <i class="fa-solid fa-hand-holding-heart mb-1 fs-5"></i>
+                                    <span class="small fw-bold">جمعية خيرية</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">الاسم بالكامل (أو اسم المطعم/الجمعية):</label>
+                        <input type="text" name="full_name" class="form-control" placeholder="مثال: مطعم الأصدقاء أو محمد إبراهيم" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small text-muted">اسم الدخول (Username):</label>
+                            <input type="text" name="username" class="form-control" placeholder="اسم بالإنجليزية مثلاً: ahmed_food" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small text-muted">كلمة المرور (8 خانات على الأقل):</label>
+                            <div class="input-group">
+                                <input type="password" name="password" id="registerPassword" class="form-control border-end-0" placeholder="8 خانات على الأقل" minlength="8" required>
+                                <button class="btn btn-outline-secondary border-start-0 bg-light btn-toggle-password" type="button" data-target="registerPassword" title="إظهار / إخفاء كلمة المرور">
+                                    <i class="fa-solid fa-eye text-muted"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small text-muted">رقم الهاتف:</label>
+                            <input type="text" name="phone" class="form-control" placeholder="مثال: 01012345678">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small text-muted">الموقع أو الحي السكني:</label>
+                            <input type="text" name="address" class="form-control" placeholder="مثال: الدقي - شارع مصدق">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-zad-primary w-100 py-3 mt-2 mb-3">
+                        <i class="fa-solid fa-user-check me-2"></i> إتمام التسجيل والبدء فوراً
+                    </button>
+
+                    <div class="text-center text-muted small">
+                        لديك حساب بالفعل؟ <a href="{{ url_for('login') }}" class="text-success fw-bold text-decoration-none">تسجيل الدخول</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
