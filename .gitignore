@@ -9,6 +9,15 @@ venv/
 env/
 ENV/
 
+# Documentation & Presentations
+*.docx
+*.pptx
+*.pdf
+*توثيق*
+*عرض*
+*دليل*
+build_*.py
+
 # Operating System Files
 Thumbs.db
 ehthumbs.db
